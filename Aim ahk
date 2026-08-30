@@ -1,0 +1,98 @@
+#Requires AutoHotkey v2.0
+#SingleInstance Force
+
+SetKeyDelay(-1, -1)
+SendMode("Input")
+CoordMode("Pixel", "Screen")
+
+; ===== PIXEL SETTINGS =====
+px := 1040
+py := 933
+targetColor := 0xFFFFFF
+
+; ===== MODES =====
+modes := ["OFF", "X", "Z", "C"]
+current := 1
+mode := modes[current]
+
+; ===== STATE =====
+armed := false
+running := true
+
+; =========================
+; TOGGLE MODE
+; =========================
+Alt:: {
+    global current, modes, mode
+
+    current++
+
+    if (current > modes.Length)
+        current := 1
+
+    mode := modes[current]
+
+    ToolTip("Mode: " mode)
+    SetTimer(() => ToolTip(), -700)
+}
+
+; =========================
+; TOGGLE SCAN
+; =========================
+F5:: {
+    global running
+
+    running := !running
+
+    ToolTip("Scan: " (running ? "ON" : "OFF"))
+    SetTimer(() => ToolTip(), -700)
+}
+
+; =========================
+; DEBUG COLOR
+; =========================
+F9:: {
+    global px, py, targetColor
+
+    c := PixelGetColor(px, py, "RGB")
+
+    ToolTip(
+        "Cur: " Format("0x{:06X}", c)
+        " | Target: " Format("0x{:06X}", targetColor)
+    )
+
+    SetTimer(() => ToolTip(), -1000)
+}
+
+; =========================
+; EXIT
+; =========================
+F10:: ExitApp
+
+; =========================
+; MAIN LOOP
+; =========================
+SetTimer(MacroLoop, 1)
+
+MacroLoop() {
+    global px, py, targetColor
+    global armed, running, mode
+
+    if (!running || mode = "OFF")
+        return
+
+    color := PixelGetColor(px, py, "RGB")
+    isTarget := (color = targetColor)
+
+    ; ===== ARM WHEN COLOR IS PRESENT =====
+    if (isTarget) {
+        armed := true
+        return
+    }
+
+    ; ===== FIRE WHEN COLOR DISAPPEARS =====
+    if (armed && !isTarget) {
+
+        if (mode = "X") {
+            SendInput("xxxxx") tp aimbot 
+        }
